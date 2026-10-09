@@ -119,7 +119,18 @@ bool startClient()
 	setNonblock(sock);
 	memset(&hostAddr, 0, hostAddr.sizeof);
 	hostAddr.sin_family = AF_INET;
-	hostAddr.sin_port = swap16(PORT);
+
+	// parse port from portText
+	int customPort = 0;
+	foreach (ch; portText[0 .. portLen])
+	{
+		if (ch < '0' || ch > '9') return false;
+		customPort = customPort * 10 + (ch - '0');
+	}
+	if (customPort < 1 || customPort > 65535) return false;
+
+	hostAddr.sin_port = swap16(cast(ushort)customPort);
+
 	hostAddr.sin_addr.s_addr = ip;
 	isHost = false;
 	joined = false;

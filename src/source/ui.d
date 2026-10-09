@@ -39,22 +39,66 @@ void joinScreen(int w, int h)
 {
 	ClearBackground(Color(20, 22, 35, 255));
 	float u = h / 720.0f;
+
+	// IP input
 	DrawText("Host IP:", cast(int)(w / 2 - 135 * u), cast(int)(30 * u), cast(int)(26 * u), Colors.WHITE);
 	DrawRectangle(cast(int)(w / 2 - 135 * u), cast(int)(65 * u), cast(int)(270 * u), cast(int)(60 * u), Color(0, 0, 0, 180));
 	DrawText(ipText.ptr, cast(int)(w / 2 - 125 * u), cast(int)(75 * u), cast(int)(40 * u), Colors.GREEN);
-	if (menuMsg[0]) DrawText(menuMsg.ptr, 20, cast(int)(135 * u), cast(int)(20 * u), Colors.YELLOW);
+
+	//  Port
+	DrawText("Port:", cast(int)(w / 2 - 135 * u), cast(int)(140 * u), cast(int)(26 * u), Colors.WHITE);
+	DrawRectangle(cast(int)(w / 2 - 135 * u), cast(int)(175 * u), cast(int)(270 * u), cast(int)(60 * u), Color(0, 0, 0, 180));
+	DrawText(portText.ptr, cast(int)(w / 2 - 125 * u), cast(int)(185 * u), cast(int)(40 * u), Colors.GREEN);
+
+	if (menuMsg[0]) DrawText(menuMsg.ptr, 20, cast(int)(250 * u), cast(int)(20 * u), Colors.YELLOW);
+
+	// detect which field is being edited
+	bool editingPort = false;
+	Rectangle ipBox = Rectangle(w / 2 - 135 * u, 65 * u, 270 * u, 60 * u);
+	Rectangle portBox = Rectangle(w / 2 - 135 * u, 175 * u, 270 * u, 60 * u);
+
+	static bool s_editingPort = false;
+
+	if (IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
+	{
+		Vector2 mp = GetMousePosition();
+		if (CheckCollisionPointRec(mp, portBox)) s_editingPort = true;
+		else if (CheckCollisionPointRec(mp, ipBox)) s_editingPort = false;
+	}
+	editingPort = s_editingPort;
 
 	// physical keyboard (desktop)
 	int c;
 	while ((c = GetCharPressed()) != 0)
 	{
-		if (((c >= '0' && c <= '9') || c == '.') && ipLen < 15)
+		if (editingPort)
 		{
-			ipText[ipLen++] = cast(char)c;
-			ipText[ipLen] = 0;
+			if (c >= '0' && c <= '9' && portLen < 5)
+			{
+				portText[portLen++] = cast(char)c;
+				portText[portLen] = 0;
+			}
+		}
+		else
+		{
+			if (((c >= '0' && c <= '9') || c == '.') && ipLen < 15)
+			{
+				ipText[ipLen++] = cast(char)c;
+				ipText[ipLen] = 0;
+			}
 		}
 	}
-	if (IsKeyPressed(KeyboardKey.KEY_BACKSPACE) && ipLen > 0) ipText[--ipLen] = 0;
+	if (IsKeyPressed(KeyboardKey.KEY_BACKSPACE))
+	{
+		if (editingPort && portLen > 0)
+		{
+			portText[--portLen] = 0;
+		}
+		else if (!editingPort && ipLen > 0)
+		{
+			ipText[--ipLen] = 0;
+		}
+	}
 
 	// on-screen keypad (Android)
 	foreach (k; 0 .. 12)
@@ -63,14 +107,26 @@ void joinScreen(int w, int h)
 		lab[0] = "123456789.0<"[k];
 		lab[1] = 0;
 		float bx = w / 2 - 135 * u + (k % 3) * 92 * u;
-		float by = 150 * u + (k / 3) * 72 * u;
+		float by = 280 * u + (k / 3) * 72 * u;
 		if (button(Rectangle(bx, by, 86 * u, 66 * u), lab.ptr, cast(int)(32 * u)))
 		{
 			if (lab[0] == '<')
 			{
-				if (ipLen > 0)
+				if (editingPort && portLen > 0)
+				{
+					portText[--portLen] = 0;
+				}
+				else if (!editingPort && ipLen > 0)
 				{
 					ipText[--ipLen] = 0;
+				}
+			}
+			else if (editingPort)
+			{
+				if (portLen < 5)
+				{
+					portText[portLen++] = lab[0];
+					portText[portLen] = 0;
 				}
 			}
 			else if (ipLen < 15)
@@ -80,7 +136,8 @@ void joinScreen(int w, int h)
 			}
 		}
 	}
-	if (button(Rectangle(w / 2 - 135 * u, 450 * u, 270 * u, 66 * u), "CONNECT", cast(int)(30 * u)))
+
+	if (button(Rectangle(w / 2 - 135 * u, 580 * u, 270 * u, 66 * u), "CONNECT", cast(int)(30 * u)))
 	{
 		menuMsg[0] = 0;
 		if (startClient())
@@ -89,10 +146,10 @@ void joinScreen(int w, int h)
 		}
 		else
 		{
-			snprintf(menuMsg.ptr, 80, "Invalid IP address");
+			snprintf(menuMsg.ptr, 80, "Invalid IP or port");
 		}
 	}
-	if (button(Rectangle(w / 2 - 135 * u, 525 * u, 270 * u, 56 * u), "BACK", cast(int)(26 * u)))
+	if (button(Rectangle(w / 2 - 135 * u, 655 * u, 270 * u, 56 * u), "BACK", cast(int)(26 * u)))
 	{
 		scene = 0;
 	}

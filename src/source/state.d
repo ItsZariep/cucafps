@@ -11,6 +11,8 @@ __gshared int sock = -1, myId = 0, scene = 0; // scene: 0 menu, 1 join, 2 play
 __gshared bool isHost, joined;
 __gshared sockaddr_in hostAddr;
 __gshared char[16] ipText, localIp;
+__gshared char[6] portText = "7777";
+__gshared int portLen = 4;
 __gshared int ipLen;
 __gshared char[16] myName;
 __gshared char[80] menuMsg;
