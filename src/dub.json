@@ -1,0 +1,48 @@
+{
+	"description": "A minimal D application.",
+	"dependencies": {
+		"raylib-d": "~>6.0.1"
+	},
+
+	"libs": [
+		"raylib"
+	],
+
+	"authors": [
+		"ItsZariep"
+	],
+	"copyright": "Copyright © 2026, ItsZariep",
+	"license": "GPL-3.0-only",
+	"name": "raydash",
+	
+	"stringImportPaths": ["source"],
+	"configurations": [
+		{
+			"name": "default",
+			"targetType": "executable",
+			"targetName": "game",
+			"libs": ["raylib"],
+			"lflags-posix": ["-L."],
+			"lflags-osx": ["-rpath", "@executable_path/"],
+			"lflags-linux": ["-rpath=$$ORIGIN"]
+		},
+		{
+			"name": "wasm",
+			"targetType": "staticLibrary",
+			"targetName": "game_wasm",
+			"dflags": ["-i", "-betterC", "-checkaction=halt"]
+		},
+		{
+			"name": "android",
+			"targetType": "dynamicLibrary",
+			"targetName": "main",
+			"dependencies": {
+				"raylib-d": "~>6.0.1"
+			},
+			"subConfigurations": {
+				"raylib-d": "library"
+			},
+			"libs-posix": []
+		}
+	]
+}
